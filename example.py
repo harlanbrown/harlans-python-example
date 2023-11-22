@@ -1,14 +1,20 @@
 from nuxeo.client import Nuxeo
 nuxeo = Nuxeo(auth=('Administrator', 'Administrator'))
 
-events = nuxeo.operations.new('Audit.QueryWithPageProvider')
-events.params = {
-        'providerName': 'EVENTS_VIEW',
-        'namedQueryParams':{
-                'principalName':'',
-                'startDate':'2023-09-10T05:00:00.000Z',
-                'endDate':'2023-09-14T05:00:00.000Z'}
-}
-results = events.execute()
-print(results)
+query = "SELECT * FROM Document WHERE ecm:primaryType = 'File' AND ecm:isTrashed = 0 AND ecm:isVersion = 0"
+entries = []
+index = 0
+
+while True:
+    query_result = nuxeo.documents.query({"query":query, "pageSize":500, "currentPageIndex":index});
+    listOfEntries = query_result["entries"];
+
+    for doc in listOfEntries:
+        entries.append(doc.properties)
+
+    if not query_result['isNextPageAvailable']:
+        break
+
+    index += 1
+print(entries)
 
